@@ -3,7 +3,7 @@
 
 #include <bits/stdc++.h>
 #include <windows.h>
-#include<conio.h>
+#include <conio.h>
 using namespace std;
 
 #define setBrown setTextColor(6, 0)
@@ -26,11 +26,6 @@ void setTextColor(int textColor, int backColor) {
   int colorAttribute = backColor << 4 | textColor;
   SetConsoleTextAttribute(consoleHandle, colorAttribute);
 }
-
-
-
-
-
 
 void show_score_board(){
 	setRed;
@@ -68,12 +63,16 @@ void display(){
 			cout << "|||||||     \t|\n";
 		}else if (base == 2){
 			cout << "|||||||=====\t|\n";
+		}else{
+			cout << "|||||||     \t|\n"; // game over
 		}
 	}else if (player == 2){
 		if (base == 1){
 			cout << "\t|\t     |||||||";
 		}else if (base == 3){
 			cout << "\t|\t=====|||||||";
+		}else{
+			cout << "\t|\t     |||||||"; // game over
 		}
 		setBlue;
 		cout << "  #  ";
@@ -84,8 +83,44 @@ void display(){
 //	setRed;
 	show_score_board();
 }
+void display_game_over(){
+	
+}
 void game_over(){
-	cout << "\tGame Over\n";
+	setWhite;
+	int choose = 1;
+	while (true){
+		display();
+		cout << "\t Game Over!\n";
+		cout << "\t Do you want to Play again?   ";
+		setWhite;
+		if (choose == 1){
+			setTextColor(0, 15);
+			cout << "Yes";
+			setWhite;
+			cout << "   ";
+			cout << "No\n";
+		}else{
+			setWhite;
+			cout << "Yes";
+			cout << "   ";
+			setTextColor(0, 15);
+			cout << "No\n";
+			setWhite;
+		}
+		int c = getch();
+		if (c == 13){
+			if (choose == 1){
+				start_game();
+			}else if (choose == 2){
+				exit(0);
+			}
+		}else if (c == 224){
+			c = getch();
+			if (c == 75)choose = 1; // left
+			else if (c == 77)choose = 2; // right
+		}
+	}
 	exit(0);
 }
 void check_encounter(){
@@ -137,6 +172,7 @@ void start_game(){
 		check_encounter();
 		update_score();
 	}
+
 }
 int main(){
 	start_game(); 

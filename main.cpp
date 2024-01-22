@@ -4,12 +4,17 @@
 #include <bits/stdc++.h>
 #include <windows.h>
 #include <conio.h>
+#include <allegro5/allegro.h>
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
 using namespace std;
 
 #define setBrown setTextColor(6, 0)
 #define setBlue setTextColor(1, 0)
 #define setWhite setTextColor(15, 0)
 #define setRed setTextColor(4, 0)
+
+ALLEGRO_DISPLAY *alg_display;
 
 void start_game();
 
@@ -20,6 +25,16 @@ int player = 1;
 int& base = tree[10]; // A place where players and branches are checked (tree 10)
 int max_score = 0;
 int score = 0;
+
+
+// powering up item
+int f_Flag = 0;
+int x2_Flag = 0;
+
+
+// _________________
+
+
 
 void setTextColor(int textColor, int backColor) {
   HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -35,7 +50,26 @@ void show_score_board(){
 	cout << "\t|_______________|_______________|\n";
 }
 void update_score(){
-	score += 30;
+//	score += 30;
+	if (score < 1e3){
+		score += 30;
+		if (x2_Flag){
+			x2_Flag--;
+			score += 30;
+		}
+	}else if (score < 1e4){
+		score += 50;
+		if (x2_Flag){
+			x2_Flag--;
+			score += 50;
+		}
+	}else if (score < 1e5){
+		score += 100;
+		if (x2_Flag){
+			x2_Flag--;
+			score += 100;
+		}
+	}
 	max_score = max(score, max_score);
 }
 void display(){
@@ -131,6 +165,16 @@ void check_encounter(){
 	}
 }
 void move(){
+	if (f_Flag){
+		f_Flag--;
+		if (tree[9] == 1)return;
+		else if (tree[9] == 2){
+			player = 1;
+		}else if (tree[9] == 3){
+			player = 2;
+		}
+		return;
+	}
 	int c = getch();
 	if (c == 224){
 		c = getch();
@@ -150,6 +194,18 @@ void update_tree(){
 	if ((tree[1] == 2 && tree[2] == 3) || (tree[1] == 3 && tree[2] == 2)){
 		tree[1] = 1;
 	}
+	if (tree[1] == 1){
+		int power_up = (rand()%35) + 1;
+		if (power_up == 5){
+			tree[1] = 3; // speed
+		}else if (power_up == 15){
+			tree[1] = 4; // freeze
+		}else if (power_up == 25){
+			tree[1] = 5; // 2x
+		}else if (power_up == 35){
+			tree[1] = 6; // +2s
+		}
+	}
 }
 void make_tree(){
 	// tree 1 equal to tree trunk
@@ -162,6 +218,7 @@ void make_tree(){
 	tree[10] = 1;
 }
 void start_game(){
+	
 	make_tree();
 	score = 0;
 	while (true){
@@ -175,5 +232,12 @@ void start_game(){
 
 }
 int main(){
+	al_init();
+
+	alg_display = al_create_display(1280, 720);
+	al_clear_to_color(al_map_rgb(255, 255, 255));
+	al_flip_display();
+
+	
 	start_game(); 
 }

@@ -7,6 +7,8 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
+#include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_image.h>
 using namespace std;
 
 #define setBrown setTextColor(6, 0)
@@ -34,7 +36,22 @@ int x2_Flag = 0;
 
 // _________________
 
+// graphics
+	ALLEGRO_BITMAP *background;
+	ALLEGRO_BITMAP *l_branch;
+	ALLEGRO_BITMAP *r_branch;
+	ALLEGRO_BITMAP *l_player;
+	ALLEGRO_BITMAP *r_player;
+// end graphics
 
+// profile
+struct profile{
+	string username;
+	int gender;
+	int uscore;
+};
+struct profile user;
+// end prfile
 
 void setTextColor(int textColor, int backColor) {
   HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -73,7 +90,28 @@ void update_score(){
 	max_score = max(score, max_score);
 }
 void display(){
+	// allgero option
+	ALLEGRO_COLOR balck = al_map_rgb(0,0,0);
+	
+	
+	
+	
+	
+	
+	
+	// end allgero option
+	
+	
+	
+	
+	
+	
 	system("cls");
+	al_draw_bitmap(background, 0, 0, 0);
+//	al_draw_bitmap(l_player, 500, 515, 0);
+//	al_draw_bitmap(r_player, 660, 515, 0);
+//	al_draw_bitmap(l_branch, 490, i * 50, 0);
+//	al_draw_bitmap(r_branch, 650, i * 50, 0);
 	setBrown;
 	cout << "\t _______________________________\n";
 	setBrown;
@@ -82,8 +120,10 @@ void display(){
 			cout << "\t|\t     |||||||     \t|\n";
 		}else if (tree[i] == 2){
 			cout << "\t|\t     |||||||=====\t|\n";
+			al_draw_bitmap(r_branch, 650, i * 50, 0);
 		}else if (tree[i] == 3){
 			cout << "\t|\t=====|||||||     \t|\n";
+			al_draw_bitmap(l_branch, 490, i * 50, 0);
 		}else{
 			cout << "Eror 404   " << tree[i] << '\n';
 		}
@@ -92,11 +132,13 @@ void display(){
 		cout << "\t|\t";
 		setBlue;
 		cout << "  #  ";
+		al_draw_bitmap(l_player, 500, 515, 0);
 		setBrown;
 		if (base == 1){
 			cout << "|||||||     \t|\n";
 		}else if (base == 2){
 			cout << "|||||||=====\t|\n";
+			al_draw_bitmap(r_branch, 650, 10 * 50, 0);
 		}else{
 			cout << "|||||||     \t|\n"; // game over
 		}
@@ -105,20 +147,20 @@ void display(){
 			cout << "\t|\t     |||||||";
 		}else if (base == 3){
 			cout << "\t|\t=====|||||||";
+			al_draw_bitmap(l_branch, 490, 10 * 50, 0);
 		}else{
 			cout << "\t|\t     |||||||"; // game over
 		}
 		setBlue;
 		cout << "  #  ";
+		al_draw_bitmap(r_player, 680, 515, 0);
 		setBrown;
 		cout << "\t|\n";
 	}
 	cout << "\t|_______________________________|\n";
 //	setRed;
 	show_score_board();
-}
-void display_game_over(){
-	
+	al_flip_display();
 }
 void game_over(){
 	setWhite;
@@ -194,18 +236,18 @@ void update_tree(){
 	if ((tree[1] == 2 && tree[2] == 3) || (tree[1] == 3 && tree[2] == 2)){
 		tree[1] = 1;
 	}
-	if (tree[1] == 1){
-		int power_up = (rand()%35) + 1;
-		if (power_up == 5){
-			tree[1] = 3; // speed
-		}else if (power_up == 15){
-			tree[1] = 4; // freeze
-		}else if (power_up == 25){
-			tree[1] = 5; // 2x
-		}else if (power_up == 35){
-			tree[1] = 6; // +2s
-		}
-	}
+//	if (tree[1] == 1){
+//		int power_up = (rand()%35) + 1;
+//		if (power_up == 5){
+//			tree[1] = 3; // speed
+//		}else if (power_up == 15){
+//			tree[1] = 4; // freeze
+//		}else if (power_up == 25){
+//			tree[1] = 5; // 2x
+//		}else if (power_up == 35){
+//			tree[1] = 6; // +2s
+//		}
+//	}
 }
 void make_tree(){
 	// tree 1 equal to tree trunk
@@ -216,6 +258,26 @@ void make_tree(){
 		}
 	}
 	tree[10] = 1;
+}
+void menu(){
+	int choose = 1;
+	while (true){
+		
+		
+		
+		
+		
+		char c = getch();
+		if (c == 13){
+			
+		}else if (c == 224){
+			if (c == 72){
+				
+			}else if (c == 80){
+				
+			}
+		}
+	}
 }
 void start_game(){
 	
@@ -232,12 +294,49 @@ void start_game(){
 
 }
 int main(){
-	al_init();
+	if (!al_init()){
+		cout << "Could not init allegro!\n";
+		return 0;
+	}
 
 	alg_display = al_create_display(1280, 720);
 	al_clear_to_color(al_map_rgb(255, 255, 255));
 	al_flip_display();
-
+	al_init_primitives_addon();
+	al_init_image_addon();
+	
+	// load images
+	background = al_load_bitmap("icon\\background.png");
+	if (!background) {
+        cout << "could not load image of backgrond!\n";
+        return 0;
+    }
+	l_player = al_load_bitmap("icon\\player1.png");
+	r_player = al_load_bitmap("icon\\player2.png");
+	if (!r_player) {
+        cout << "could not load image of player!\n";
+        return 0;
+    }
+    l_branch = al_load_bitmap("icon\\lbranch.png");
+    if (!l_branch) {
+        cout << "could not load image of left branch!\n";
+        return 0;
+    }
+    r_branch = al_load_bitmap("icon\\rbranch.png");
+	if (!r_branch) {
+        cout << "could not load image of right branch!\n";
+        return 0;
+    }
+	// end loading images
+//	al_draw_bitmap(background, 0, 0, 0);
+////	al_draw_bitmap(p_player, 500, 515, 0);
+////	al_draw_bitmap(l_branch, 490, 50, 0);
+////	al_draw_bitmap(r_branch, 650, 50, 0);
+//	for (int i = 1 ;  i <= 10; i++){
+//		al_draw_bitmap(l_branch, 490, i * 50, 0);
+//		al_draw_bitmap(r_branch, 650, i * 50, 0);
+//	}
+//    al_flip_display();
 	
 	start_game(); 
 }

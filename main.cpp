@@ -9,6 +9,7 @@
 #include <chrono>
 #include <time.h>
 #include <ctime>
+#include <fstream>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
@@ -24,7 +25,8 @@ using namespace std;
 ALLEGRO_DISPLAY *alg_display;
 
 void start_game();
-
+void make_tree();
+void menu();
 
 const int max_tree_size = 20;
 int tree[max_tree_size];
@@ -42,6 +44,9 @@ int freeze_Flag = 0;
 
 // graphics
 	ALLEGRO_BITMAP *background;
+	ALLEGRO_BITMAP *menu1;
+	ALLEGRO_BITMAP *menu2;
+	ALLEGRO_BITMAP *menu3;
 	ALLEGRO_BITMAP *l_branch;
 	ALLEGRO_BITMAP *r_branch;
 	ALLEGRO_BITMAP *l_player;
@@ -56,19 +61,41 @@ int freeze_Flag = 0;
 	ALLEGRO_BITMAP *up_2x;
 	ALLEGRO_BITMAP *up_speed;
 	ALLEGRO_BITMAP *up_freeze;
-	ALLEGRO_BITMAP *time10;
+//	ALLEGRO_BITMAP *time10;
+	
 	ALLEGRO_FONT *font;
+	
+	ALLEGRO_KEYBOARD_STATE kbdstate;
+	
+	ALLEGRO_EVENT_QUEUE *event_queue;
+	ALLEGRO_EVENT_QUEUE *event_queue2;
+	
 // end graphics
 
 // profile
 struct profile{
-	string username;
-	int gender;
 	int uscore;
+	int umscore;
+	int utime;
+	int tree[20];
 };
 struct profile user;
 // end prfile
-
+void save_data(){
+	ofstream file("data\\data.txt", std::ios::trunc);
+	if (!file.is_open()) {
+        std::cerr << "Could not open file!\n";
+        return;
+    }
+    file << player << '\n';
+    file << score << '\n';
+    file << max_score << '\n';
+    file << Time << '\n';
+    for (int i = 1; i <= 10; i++){
+    	file << tree[i] << '\n';
+	}
+	file.close();
+}
 void setTextColor(int textColor, int backColor) {
   HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
   int colorAttribute = backColor << 4 | textColor;
@@ -80,6 +107,7 @@ void show_time_board(){
 	al_draw_text(font, al_map_rgb(255, 255, 255), 125, 43, ALLEGRO_ALIGN_CENTER, str_Time.c_str());
 	al_flip_display();
 }
+
 void timer(){
 	time_t startTime = time(nullptr);
 	while (Time){
@@ -87,6 +115,7 @@ void timer(){
 		double diff = difftime(nowTime, startTime);
 		if (diff >= 1 && freeze_Flag == 0){
 			startTime = nowTime;
+//			show_time_board();
 			Time--;
 		}
 	}
@@ -137,20 +166,8 @@ void update_score(){
 }
 void display(){
 	// allgero option
-	ALLEGRO_COLOR balck = al_map_rgb(0,0,0);
-	
-	
-	
-	
-	
-	
-	
+	ALLEGRO_COLOR balck = al_map_rgb(0,0,0);	
 	// end allgero option
-	
-	
-	
-	
-	
 	
 	system("cls");
 	al_draw_bitmap(background, 0, 0, 0);
@@ -206,8 +223,6 @@ void display(){
 		}
 		
 		
-		
-		
 		if (base == 4){
 			al_draw_bitmap(up_speed, 670, 10 * 50, 0);
 		}else if (base == 6){
@@ -252,8 +267,6 @@ void display(){
 	show_time_board();
 	al_flip_display();
 }
-
-
 
 void game_over_display(){
 	
@@ -326,8 +339,6 @@ void game_over(){
 			al_draw_bitmap(a_gameover, 200, 100, 0);
 			al_flip_display();
 			
-			
-			
 			setTextColor(0, 15);
 			cout << "Yes";
 			setWhite;
@@ -344,18 +355,51 @@ void game_over(){
 			cout << "No\n";
 			setWhite;
 		}
-		int c = getch();
-		if (c == 13){
-			if (choose == 1){
-				start_game();
-			}else if (choose == 2){
-				exit(0);
-			}
-		}else if (c == 224){
-			c = getch();
-			if (c == 75)choose = 1; // left
-			else if (c == 77)choose = 2; // right
-		}
+		
+//		al_get_keyboard_state(&kbdstate);
+//		
+//		if (al_key_down(&kbdstate , ALLEGRO_KEY_LEFT)){
+//			choose = 1;
+//			cout << "KHIHIH\n";
+//		}else if (al_key_down(&kbdstate , ALLEGRO_KEY_RIGHT)){
+//			choose = 2;
+//		}
+		
+		ALLEGRO_EVENT ev;
+        if (al_get_next_event(event_queue, &ev)) {
+            if (ev.type == ALLEGRO_EVENT_KEY_UP) {
+                switch (ev.keyboard.keycode) {
+                    case ALLEGRO_KEY_LEFT:
+                        choose = 1;
+                        break;
+                    case ALLEGRO_KEY_RIGHT:
+						choose = 2;
+                        break;
+                    case ALLEGRO_KEY_ENTER:
+                    	if (choose == 1){
+//                    		make_tree();
+//							start_game();
+							menu();
+						}else if (choose == 2){
+							exit(0);
+						}
+						break;
+                }
+            }
+        }
+		
+//		int c = getch();
+//		if (c == 13){
+//			if (choose == 1){
+//				start_game();
+//			}else if (choose == 2){
+//				exit(0);
+//			}
+//		}else if (c == 224){
+//			c = getch();
+//			if (c == 75)choose = 1; // left
+//			else if (c == 77)choose = 2; // right
+//		}
 	}
 	exit(0);
 }
@@ -409,13 +453,40 @@ void move(){
 		Sleep(1000);
 		return;
 	}
-	int c = getch();
-	if (c == 224){
-		c = getch();
-		if (c == 75)player = 1; // left
-		else if (c == 77)player = 2; // right
-		else move();
-	}else move();
+	al_register_event_source(event_queue, al_get_keyboard_event_source());
+	int sw = 0;
+	while(1){
+		ALLEGRO_EVENT ev;
+	    
+		if (al_get_next_event(event_queue, &ev)) {
+			if (ev.type == ALLEGRO_EVENT_KEY_UP) {
+	    		switch (ev.keyboard.keycode) {
+	                case ALLEGRO_KEY_LEFT:
+	                    player = 1;
+	                    sw = 1;
+	                    ev.keyboard.keycode = ALLEGRO_KEY_UP;
+	                    break;
+	                case ALLEGRO_KEY_RIGHT:
+						player = 2;
+						sw = 1;
+	                    ev.keyboard.keycode = ALLEGRO_KEY_UP;
+						break;
+					case ALLEGRO_KEY_ESCAPE:
+						save_data();
+						menu();
+						break;
+	            }
+	        }
+	    }
+	    if (sw)break;
+	}
+//	int c = getch();
+//	if (c == 224){
+//		c = getch();
+//		if (c == 75)player = 1; // left
+//		else if (c == 77)player = 2; // right
+//		else move();
+//	}else move();
 }
 void update_tree(){
 	// tree 1 equal to tree trunk
@@ -458,32 +529,11 @@ void make_tree(){
 		}
 	}
 	tree[10] = 1;
-}
-void menu(){
-	int choose = 1;
-	while (true){
-		
-		
-		
-		
-		
-		char c = getch();
-		if (c == 13){
-			
-		}else if (c == 224){
-			if (c == 72){
-				
-			}else if (c == 80){
-				
-			}
-		}
-	}
+	score = 0;
+	Time = 10;
 }
 void start_game(){
 	thread timerThread(timer);
-	Time = 10;
-	make_tree();
-	score = 0;
 	while (true){
 		display();
 		move();
@@ -494,7 +544,66 @@ void start_game(){
 	}
 //	timerThread.join();
 }
-
+void load_data(){
+	ifstream file("data\\data.txt");
+	if (!file.is_open()) {
+        std::cerr << "Could not open file!\n";
+        exit(0);
+    }
+    vector<int> data_number; 
+    int num;
+    while (file >> num) {
+        data_number.push_back(num);
+    }
+    player = data_number[0];
+    score = data_number[1];
+    max_score = data_number[2];
+    Time = data_number[3];
+    for (int i = 1; i <= 10; i++){
+    	tree[i] = data_number[i + 3];
+	}
+	file.close();
+}
+void menu(){
+	int choose = 1;
+	al_register_event_source(event_queue, al_get_keyboard_event_source());
+	 
+	while (1) {
+		if (choose == 1){
+			al_draw_bitmap(menu1, 0, 0, 0);
+		}else if (choose == 2){
+			al_draw_bitmap(menu2, 0, 0, 0);
+		}else if (choose == 3){
+			al_draw_bitmap(menu3, 0, 0, 0);
+		}
+		al_flip_display();
+		
+        ALLEGRO_EVENT ev;
+        if (al_get_next_event(event_queue, &ev)) {
+            if (ev.type == ALLEGRO_EVENT_KEY_UP) {
+                switch (ev.keyboard.keycode) {
+                    case ALLEGRO_KEY_UP:
+                        choose = max(choose - 1, 1);
+                        break;
+                    case ALLEGRO_KEY_DOWN:
+						choose = min(choose + 1 , 3);
+                        break;
+                    case ALLEGRO_KEY_ENTER:
+                    	if (choose == 1){
+                    		make_tree();
+							start_game();
+						}else if (choose == 2){
+							load_data();
+							start_game();
+						}else if (choose == 3){
+							exit(0);
+						}
+						break;
+                }
+            }
+        }
+    }
+}
 int main(){
 	if (!al_init()){
 		cout << "Could not init allegro!\n";
@@ -508,8 +617,13 @@ int main(){
 	al_init_image_addon();
 	al_init_font_addon();
     al_init_ttf_addon();
+    al_install_keyboard();
+    
     
 	// load images
+	menu1 = al_load_bitmap("icon\\menu1.png");
+	menu2 = al_load_bitmap("icon\\menu2.png");
+	menu3 = al_load_bitmap("icon\\menu3.png");
 	background = al_load_bitmap("icon\\background.png");
 	a_gameover = al_load_bitmap("icon\\GameOver1.png");
 	e_gameover = al_load_bitmap("icon\\GameOver2.png");
@@ -546,8 +660,8 @@ int main(){
         cout << "could not load font!\n";
         return 0;
     }
-    
-    
+    event_queue = al_create_event_queue();
+    event_queue2 = al_create_event_queue();
     
     
     
@@ -562,5 +676,6 @@ int main(){
 //	}
 //    al_flip_display();
 	
+	menu();
 	start_game(); 
 }

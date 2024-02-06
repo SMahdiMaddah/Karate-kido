@@ -4,6 +4,11 @@
 #include <bits/stdc++.h>
 #include <windows.h>
 #include <conio.h>
+#include <thread>
+#include <pthread.h>
+#include <chrono>
+#include <time.h>
+#include <ctime>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
@@ -27,13 +32,12 @@ int player = 1;
 int& base = tree[10]; // A place where players and branches are checked (tree 10)
 int max_score = 0;
 int score = 0;
-
+int Time = 10;
 
 // powering up item
 int f_Flag = 0;
 int x2_Flag = 0;
-
-
+int freeze_Flag = 0;
 // _________________
 
 // graphics
@@ -42,6 +46,18 @@ int x2_Flag = 0;
 	ALLEGRO_BITMAP *r_branch;
 	ALLEGRO_BITMAP *l_player;
 	ALLEGRO_BITMAP *r_player;
+	ALLEGRO_BITMAP *gl_player;
+	ALLEGRO_BITMAP *gr_player;
+	ALLEGRO_BITMAP *a_gameover;
+	ALLEGRO_BITMAP *e_gameover;
+	ALLEGRO_BITMAP *s_board;
+	ALLEGRO_BITMAP *t_board;
+	ALLEGRO_BITMAP *up_time;
+	ALLEGRO_BITMAP *up_2x;
+	ALLEGRO_BITMAP *up_speed;
+	ALLEGRO_BITMAP *up_freeze;
+	ALLEGRO_BITMAP *time10;
+	ALLEGRO_FONT *font;
 // end graphics
 
 // profile
@@ -58,14 +74,44 @@ void setTextColor(int textColor, int backColor) {
   int colorAttribute = backColor << 4 | textColor;
   SetConsoleTextAttribute(consoleHandle, colorAttribute);
 }
-
+void show_time_board(){
+	string str_Time = to_string(Time);
+	al_draw_bitmap(t_board, 30, 30, 0);
+	al_draw_text(font, al_map_rgb(255, 255, 255), 125, 43, ALLEGRO_ALIGN_CENTER, str_Time.c_str());
+	al_flip_display();
+}
+void timer(){
+	time_t startTime = time(nullptr);
+	while (Time){
+		time_t nowTime = time(nullptr);
+		double diff = difftime(nowTime, startTime);
+		if (diff >= 1 && freeze_Flag == 0){
+			startTime = nowTime;
+			Time--;
+		}
+	}
+}
 void show_score_board(){
+	
+	
+	al_draw_bitmap(s_board, 1000, 30, 0);
+	
+	string str_score = to_string(score);
+	string str_max_score = to_string(max_score);
+	
+	al_draw_text(font, al_map_rgb(249, 219, 36), 1150, 37, ALLEGRO_ALIGN_CENTER, str_score.c_str());
+    al_draw_text(font, al_map_rgb(153, 50, 204), 1150, 68, ALLEGRO_ALIGN_CENTER, str_max_score.c_str());
+	
+	al_flip_display();	
+	
+	
 	setRed;
 	cout << "\n";
 	cout << "\t _______________________________\n";
 	cout << "\t|Score: " <<setw(7)<< score << " |  Max = " << setw(7) << max_score << "|\n";
 	cout << "\t|_______________|_______________|\n";
 }
+
 void update_score(){
 //	score += 30;
 	if (score < 1e3){
@@ -124,6 +170,22 @@ void display(){
 		}else if (tree[i] == 3){
 			cout << "\t|\t=====|||||||     \t|\n";
 			al_draw_bitmap(l_branch, 490, i * 50, 0);
+		}else if (tree[i] == 11){
+			al_draw_bitmap(up_speed, 530, i * 50, 0);
+		}else if (tree[i] == 4){
+			al_draw_bitmap(up_speed, 670, i * 50, 0);
+		}else if (tree[i] == 5){
+			al_draw_bitmap(up_freeze, 530, i * 50, 0);
+		}else if (tree[i] == 6){
+			al_draw_bitmap(up_freeze, 670, i * 50, 0);
+		}else if (tree[i] == 7){
+			al_draw_bitmap(up_2x, 530, i * 50, 0);
+		}else if (tree[i] == 8){
+			al_draw_bitmap(up_2x, 670, i * 50, 0);
+		}else if (tree[i] == 9){
+			al_draw_bitmap(up_time, 530, i * 50, 0);
+		}else if (tree[i] == 10){
+			al_draw_bitmap(up_time, 670, i * 50, 0);
 		}else{
 			cout << "Eror 404   " << tree[i] << '\n';
 		}
@@ -133,6 +195,95 @@ void display(){
 		setBlue;
 		cout << "  #  ";
 		al_draw_bitmap(l_player, 500, 515, 0);
+		setBrown;
+		if (base == 1){
+			cout << "|||||||     \t|\n";
+		}else if (base == 2){
+			cout << "|||||||=====\t|\n";
+			al_draw_bitmap(r_branch, 650, 10 * 50, 0);
+		}else{
+			cout << "|||||||     \t|\n"; // game over
+		}
+		
+		
+		
+		
+		if (base == 4){
+			al_draw_bitmap(up_speed, 670, 10 * 50, 0);
+		}else if (base == 6){
+			al_draw_bitmap(up_freeze, 670, 10 * 50, 0);
+		}else if (base == 8){
+			al_draw_bitmap(up_2x, 670, 10 * 50, 0);
+		}else if (base == 10){
+			al_draw_bitmap(up_time, 670, 10 * 50, 0);
+		}
+		
+		
+	}else if (player == 2){
+		if (base == 1){
+			cout << "\t|\t     |||||||";
+		}else if (base == 3){
+			cout << "\t|\t=====|||||||";
+			al_draw_bitmap(l_branch, 490, 10 * 50, 0);
+		}else{
+			cout << "\t|\t     |||||||"; // game over
+		}
+		setBlue;
+		cout << "  #  ";
+		al_draw_bitmap(r_player, 680, 515, 0);
+		setBrown;
+		cout << "\t|\n";
+		
+		
+		if (base == 11){
+			al_draw_bitmap(up_speed, 530, 10 * 50, 0);
+		}else if (base == 5){
+			al_draw_bitmap(up_freeze, 530,10 * 50, 0);
+		}else if (base == 7){
+			al_draw_bitmap(up_2x, 530, 10 * 50, 0);
+		}else if (base == 9){
+			al_draw_bitmap(up_time, 530, 10 * 50, 0);
+		}
+		
+	}
+	cout << "\t|_______________________________|\n";
+//	setRed;
+	show_score_board();
+	show_time_board();
+	al_flip_display();
+}
+
+
+
+void game_over_display(){
+	
+	system("cls");
+	al_draw_bitmap(background, 0, 0, 0);
+//	al_draw_bitmap(l_player, 500, 515, 0);
+//	al_draw_bitmap(r_player, 660, 515, 0);
+//	al_draw_bitmap(l_branch, 490, i * 50, 0);
+//	al_draw_bitmap(r_branch, 650, i * 50, 0);
+	setBrown;
+	cout << "\t _______________________________\n";
+	setBrown;
+	for (int i = 1; i <= 9; i++){
+		if (tree[i] == 1){
+			cout << "\t|\t     |||||||     \t|\n";
+		}else if (tree[i] == 2){
+			cout << "\t|\t     |||||||=====\t|\n";
+			al_draw_bitmap(r_branch, 650, i * 50, 0);
+		}else if (tree[i] == 3){
+			cout << "\t|\t=====|||||||     \t|\n";
+			al_draw_bitmap(l_branch, 490, i * 50, 0);
+		}else{
+			cout << "Eror 404   " << tree[i] << '\n';
+		}
+	}
+	if (player == 1){
+		cout << "\t|\t";
+		setBlue;
+		cout << "  #  ";
+		al_draw_bitmap(gl_player, 450, 515, 0);
 		setBrown;
 		if (base == 1){
 			cout << "|||||||     \t|\n";
@@ -153,30 +304,39 @@ void display(){
 		}
 		setBlue;
 		cout << "  #  ";
-		al_draw_bitmap(r_player, 680, 515, 0);
+		al_draw_bitmap(gr_player, 680, 515, 0);
 		setBrown;
 		cout << "\t|\n";
 	}
 	cout << "\t|_______________________________|\n";
 //	setRed;
 	show_score_board();
-	al_flip_display();
+	al_flip_display();	
 }
+
 void game_over(){
 	setWhite;
 	int choose = 1;
 	while (true){
-		display();
+		game_over_display();
 		cout << "\t Game Over!\n";
 		cout << "\t Do you want to Play again?   ";
 		setWhite;
 		if (choose == 1){
+			al_draw_bitmap(a_gameover, 200, 100, 0);
+			al_flip_display();
+			
+			
+			
 			setTextColor(0, 15);
 			cout << "Yes";
 			setWhite;
 			cout << "   ";
 			cout << "No\n";
 		}else{
+			al_draw_bitmap(e_gameover, 200, 100, 0);
+			al_flip_display();
+			
 			setWhite;
 			cout << "Yes";
 			cout << "   ";
@@ -199,14 +359,45 @@ void game_over(){
 	}
 	exit(0);
 }
+void pu_speed(){
+	f_Flag = 7;
+}
+void pu_2x(){
+	x2_Flag = 7;
+}
+void pu_time(){
+	Time = min(Time+2, 10);
+}
+void pu_freeze(){
+	freeze_Flag = 10;
+}
 void check_encounter(){
 	if (base == 2 && player == 2){
 		game_over();
 	}else if (base == 3 && player == 1){
 		game_over();
+	}else if (base == 11 && player == 1){
+		pu_speed();
+	}else if (base == 4 && player == 2){
+		pu_speed();
+	}else if (base == 5 && player == 1){
+		pu_freeze();
+	}else if (base == 6 && player == 2){
+		pu_freeze();
+	}else if (base == 7 && player == 1){
+		pu_2x();
+	}else if (base == 8 && player == 2){
+		pu_2x();
+	}else if (base == 9 && player == 1){
+		pu_time();
+	}else if (base == 10 && player == 2){
+		pu_time();
+	}else if (Time <= 0){
+		game_over();
 	}
 }
 void move(){
+	if (freeze_Flag)freeze_Flag--;
 	if (f_Flag){
 		f_Flag--;
 		if (tree[9] == 1)return;
@@ -215,6 +406,7 @@ void move(){
 		}else if (tree[9] == 3){
 			player = 2;
 		}
+		Sleep(1000);
 		return;
 	}
 	int c = getch();
@@ -236,18 +428,26 @@ void update_tree(){
 	if ((tree[1] == 2 && tree[2] == 3) || (tree[1] == 3 && tree[2] == 2)){
 		tree[1] = 1;
 	}
-//	if (tree[1] == 1){
-//		int power_up = (rand()%35) + 1;
-//		if (power_up == 5){
-//			tree[1] = 3; // speed
-//		}else if (power_up == 15){
-//			tree[1] = 4; // freeze
-//		}else if (power_up == 25){
-//			tree[1] = 5; // 2x
-//		}else if (power_up == 35){
-//			tree[1] = 6; // +2s
-//		}
-//	}
+	if (tree[1] == 1){
+		int power_up = (rand()%40) + 1;
+		if (power_up == 5 ){
+			tree[1] = 11; // speed left
+		}else if (power_up == 6){
+			tree[1] = 4; // speed right
+		}else if (power_up == 15){
+			tree[1] = 5; // freeze left
+		}else if (power_up == 16){
+			tree[1] = 6; // freeze right
+		}else if (power_up == 25){
+			tree[1] = 7; // 2x left
+		}else if (power_up == 26){
+			tree[1] = 8; // 2x right
+		}else if (power_up == 35){
+			tree[1] = 9; // +2s left
+		}else if (power_up == 36){
+			tree[1] = 10; // +2s right
+		}
+	}
 }
 void make_tree(){
 	// tree 1 equal to tree trunk
@@ -280,7 +480,8 @@ void menu(){
 	}
 }
 void start_game(){
-	
+	thread timerThread(timer);
+	Time = 10;
 	make_tree();
 	score = 0;
 	while (true){
@@ -291,8 +492,9 @@ void start_game(){
 		check_encounter();
 		update_score();
 	}
-
+//	timerThread.join();
 }
+
 int main(){
 	if (!al_init()){
 		cout << "Could not init allegro!\n";
@@ -304,15 +506,27 @@ int main(){
 	al_flip_display();
 	al_init_primitives_addon();
 	al_init_image_addon();
-	
+	al_init_font_addon();
+    al_init_ttf_addon();
+    
 	// load images
 	background = al_load_bitmap("icon\\background.png");
+	a_gameover = al_load_bitmap("icon\\GameOver1.png");
+	e_gameover = al_load_bitmap("icon\\GameOver2.png");
+	s_board = al_load_bitmap("icon\\scoreboard.png");
+	t_board = al_load_bitmap("icon\\timeboard.png");
+	up_time = al_load_bitmap("icon\\uptime.png");
+	up_2x = al_load_bitmap("icon\\up2x.png");
+	up_speed = al_load_bitmap("icon\\upspeed.png");
+	up_freeze = al_load_bitmap("icon\\upfreeze.png");
 	if (!background) {
         cout << "could not load image of backgrond!\n";
         return 0;
     }
 	l_player = al_load_bitmap("icon\\player1.png");
 	r_player = al_load_bitmap("icon\\player2.png");
+	gl_player = al_load_bitmap("icon\\gplayer1.png");
+	gr_player = al_load_bitmap("icon\\gplayer2.png");
 	if (!r_player) {
         cout << "could not load image of player!\n";
         return 0;
@@ -327,6 +541,16 @@ int main(){
         cout << "could not load image of right branch!\n";
         return 0;
     }
+    font = al_load_ttf_font("font\\arial.ttf", 16, 0);
+    if (!font) {
+        cout << "could not load font!\n";
+        return 0;
+    }
+    
+    
+    
+    
+    
 	// end loading images
 //	al_draw_bitmap(background, 0, 0, 0);
 ////	al_draw_bitmap(p_player, 500, 515, 0);
